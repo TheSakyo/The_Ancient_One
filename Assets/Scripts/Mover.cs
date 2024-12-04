@@ -6,10 +6,14 @@ using UnityEngine;
 public class Mover : MonoBehaviour
 {
     public Rigidbody rb;
-    public float acceleration;
+    public float accelRate;
     public float speedLimit = 10f;
+    public float jumpForce = 100f;
     public Animator animator;
     public GameObject goPlayer;
+
+    private float targetSpeed;
+
 
     // Start is called before the first frame update
     void Start()
@@ -21,20 +25,41 @@ public class Mover : MonoBehaviour
     void Update()
     {
         Debug.Log(animator.GetFloat("xVelocity"));
-        if (Input.GetAxis("Horizontal") <  0)
+        //flip charachter sprite based one movement inputs
+        if (Input.GetAxis("Horizontal") <  0) //player is pressing left
         {
             goPlayer.transform.localScale = new Vector3(-1,1,1);
+            targetSpeed = -speedLimit;
         }
-        else if (Input.GetAxis("Horizontal") > 0)
+        else if (Input.GetAxis("Horizontal") > 0) //player is pressing right
         {
             goPlayer.transform.localScale = Vector3.one;
+            targetSpeed = speedLimit;
+        }
+        else //player is not pressing movement buttons
+        {
+            targetSpeed = 0f;
         }
     }
 
     private void FixedUpdate()
     {
-        rb.AddForce(new Vector3(Input.GetAxis("Horizontal") * acceleration ,0f ,0f));
-        rb.velocity = Vector3.ClampMagnitude(rb.velocity,speedLimit);
+
+
+        float speedDif = targetSpeed - rb.velocity.x;
+        float movement = speedDif * accelRate;
+
+        rb.AddForce(movement * Vector3.right);
+
+        //movement animation variable update
         animator.SetFloat("xVelocity" , Mathf.Abs(rb.velocity.magnitude) );
+        
+        //jump
+        if (Input.GetButtonDown("Jump"))
+        {
+            rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+        }
+        
+        
     }
 }
